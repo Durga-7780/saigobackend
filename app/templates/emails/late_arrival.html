@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #888; }
+        .info-box { background: #fff5f5; border-left: 4px solid #ff416c; padding: 15px; margin: 20px 0; }
+        .button { display: inline-block; padding: 12px 25px; background: #ff416c; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+        .highlight { font-weight: bold; color: #ff416c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Late Arrival Notification</h1>
+        </div>
+        <div class="content">
+            <p>Dear <span class="highlight">{{name}}</span>,</p>
+            <p>This is an automated notification regarding your attendance for today, <span class="highlight">{{date}}</span>.</p>
+            <div class="info-box">
+                <p><strong>Scheduled Start:</strong> {{shift_start}}</p>
+                <p><strong>Actual Check-in:</strong> {{check_in_time}}</p>
+                <p><strong>Status:</strong> Late Arrival</p>
+            </div>
+            <p>Punctuality is crucial for our team coordination and operational excellence. We understand that unforeseen circumstances can occur occasionally, but please aim to adhere to your assigned shift timings.</p>
+            <p>If you have a valid reason for the delay, please update the remarks in your attendance console or contact your manager.</p>
+            <center>
+                <a href="{{dashboard_url}}" class="button">View Attendance Console</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>&copy; {{year}} Enterprise Attendance System. This is an automated email, please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>

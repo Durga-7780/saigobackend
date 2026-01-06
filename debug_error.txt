@@ -1,0 +1,14 @@
+Error in get_response: 'Attendance' object has no attribute 'is_late_arrival'
+
+Traceback (most recent call last):
+  File "C:\Users\durga\Downloads\ReactAttendent\backend\app\ai\chatbot.py", line 190, in get_response
+    return await self._get_response_logic(query, employee_id, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\Downloads\ReactAttendent\backend\app\ai\chatbot.py", line 237, in _get_response_logic
+    late = sum(1 for a in attendance_records if a.is_late_arrival)
+  File "C:\Users\durga\Downloads\ReactAttendent\backend\app\ai\chatbot.py", line 237, in <genexpr>
+    late = sum(1 for a in attendance_records if a.is_late_arrival)
+                                                ^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\Downloads\ReactAttendent\backend\venv\Lib\site-packages\pydantic\main.py", line 1026, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Attendance' object has no attribute 'is_late_arrival'

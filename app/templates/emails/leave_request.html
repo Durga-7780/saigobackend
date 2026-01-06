@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #888; }
+        .info-box { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 15px; margin: 20px 0; }
+        .button { display: inline-block; padding: 12px 25px; background: #2196F3; color: white !important; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: 600; }
+        .highlight { font-weight: bold; color: #3182ce; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>New Leave Application</h1>
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            <p>A new leave application has been submitted by <span class="highlight">{{employee_name}}</span> and requires your review.</p>
+            
+            <div class="info-box">
+                <p><strong>Employee:</strong> {{employee_name}} ({{department}})</p>
+                <p><strong>Leave Type:</strong> {{leave_type}}</p>
+                <p><strong>Start Date:</strong> {{start_date}}</p>
+                <p><strong>End Date:</strong> {{end_date}}</p>
+                <p><strong>Total Days:</strong> {{total_days}}</p>
+                <p><strong>Reason:</strong> {{reason}}</p>
+            </div>
+            
+            <p>Please log in to the Admin Panel to approve or reject this request.</p>
+            
+            <center>
+                <a href="{{admin_url}}" class="button">Review Application</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>&copy; {{year}} Enterprise Attendance System. This is an automated email, please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>
