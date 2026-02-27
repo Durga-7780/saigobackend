@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import base64
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
@@ -52,28 +52,29 @@ class VoicebotService:
         text = (getattr(transcript, "text", None) or "").strip()
         return text
 
-    async def synthesize_speech_base64(self, text: str) -> Optional[str]:
-        try:
-            speech = await self.groq_client.audio.speech.create(
-                model=settings.GROQ_TTS_MODEL,
-                voice=settings.GROQ_TTS_VOICE,
-                input=text,
-                response_format="wav",
-            )
+    async def synthesize_speech_base64(self, text: str) -> Optional[Tuple[str, str]]:
+        for fmt in ["wav", "mp3"]:
+            try:
+                speech = await self.groq_client.audio.speech.create(
+                    model=settings.GROQ_TTS_MODEL,
+                    voice=settings.GROQ_TTS_VOICE,
+                    input=text,
+                    response_format=fmt,
+                )
 
-            if hasattr(speech, "read"):
-                maybe_bytes = speech.read()
-                audio_bytes = await maybe_bytes if hasattr(maybe_bytes, "__await__") else maybe_bytes
-            elif hasattr(speech, "content"):
-                audio_bytes = speech.content
-            else:
-                audio_bytes = bytes(speech)
+                if hasattr(speech, "read"):
+                    maybe_bytes = speech.read()
+                    audio_bytes = await maybe_bytes if hasattr(maybe_bytes, "__await__") else maybe_bytes
+                elif hasattr(speech, "content"):
+                    audio_bytes = speech.content
+                else:
+                    audio_bytes = bytes(speech)
 
-            if not audio_bytes:
-                return None
-            return base64.b64encode(audio_bytes).decode("utf-8")
-        except Exception:
-            return None
+                if audio_bytes:
+                    return base64.b64encode(audio_bytes).decode("utf-8"), fmt
+            except Exception:
+                continue
+        return None
 
     def _build_messages(self, history: List[VoiceMessage], user_text: str):
         system = SystemMessage(
@@ -126,13 +127,16 @@ class VoicebotService:
         session.updated_at = datetime.utcnow()
         await session.save()
 
-        audio_base64 = await self.synthesize_speech_base64(assistant_text)
+        tts_result = await self.synthesize_speech_base64(assistant_text)
+        audio_base64 = tts_result[0] if tts_result else None
+        audio_format = tts_result[1] if tts_result else None
 
         return {
             "session_id": str(session.id),
             "user_text": user_text,
             "assistant_text": assistant_text,
             "assistant_audio_base64": audio_base64,
+            "assistant_audio_format": audio_format,
             "messages": [
                 {
                     "role": m.role,
@@ -153,11 +157,14 @@ class VoicebotService:
         session.updated_at = datetime.utcnow()
         await session.save()
 
-        audio_base64 = await self.synthesize_speech_base64(greeting_text)
+        tts_result = await self.synthesize_speech_base64(greeting_text)
+        audio_base64 = tts_result[0] if tts_result else None
+        audio_format = tts_result[1] if tts_result else None
         return {
             "session_id": str(session.id),
             "assistant_text": greeting_text,
             "assistant_audio_base64": audio_base64,
+            "assistant_audio_format": audio_format,
             "messages": [
                 {
                     "role": m.role,
