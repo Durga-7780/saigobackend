@@ -22,6 +22,9 @@ from app.models.payslip import Payslip
 from app.models.request import Request
 from app.models.meal import Meal, DailyMenu
 from app.models.company import CompanySettings
+from app.models.document import GeneratedDocument, DocumentTemplate
+from app.models.voicebot import VoiceConversation
+
 
 # Import routers
 from app.api.routes import auth, employees, attendance, leaves, chatbot, dashboard, holidays, notifications, announcements, payroll, requests, meals, company
@@ -37,7 +40,7 @@ async def lifespan(app: FastAPI):
     # Initialize Beanie with document models
     await init_beanie(
         database=database,
-        document_models=[Employee, Attendance, Leave, Holiday, Notification, Announcement, Payslip, Request, Meal, DailyMenu, CompanySettings]
+        document_models=[Employee, Attendance, Leave, Holiday, Notification, Announcement, Payslip, Request, Meal, DailyMenu, CompanySettings, GeneratedDocument, DocumentTemplate, VoiceConversation]
     )
     
     print(f"✅ Connected to MongoDB: {settings.MONGODB_DB_NAME}")
