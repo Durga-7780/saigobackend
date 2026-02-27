@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     # Groq API
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
     GROQ_MODEL: str = "llama-3.1-8b-instant"
+    GROQ_STT_MODEL: str = os.getenv("GROQ_STT_Model","whisper-large-v3-turbo")
+    GROQ_TTS_MODEL: str = os.getenv("GROQ_TTS_Model","playai-tts")
+    GROQ_TTS_VOICE: str = os.getenv("GROQ_TTS_Voice","Fritz-PlayAI")
     
     # Local LLM
     USE_LOCAL_LLM: bool = False
