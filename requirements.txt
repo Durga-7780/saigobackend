@@ -42,3 +42,8 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 uvicorn==0.40.0
 webauthn==2.7.0
+pypdf==3.16.2
+langchain==0.3.27
+langchain-core==0.3.79
+langchain-groq==0.3.8
+
