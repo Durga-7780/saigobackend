@@ -103,11 +103,24 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Configure CORS
+# # Configure CORS
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+# from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://saigo.onrender.com"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
