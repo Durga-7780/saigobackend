@@ -174,6 +174,48 @@ Optional Holidays: 3 days (choose from the list in portal)
 3. Select a date and choose meal type (Lunch/Dinner) and category (Veg/Non-Veg).
 4. Enter items and click 'Checkout & Book'.
 5. To Redeem: Show the QR code from the 'My Upcoming Meals' list to the canteen admin."""
+            },
+            "maternity_leave": {
+                "question": "What is the Maternity Leave policy?",
+                "answer": """Maternity Leave Policy:
+
+1. **Eligibility**:
+   - Permanent Female Employees: Must have worked for at least 80 days in the past 12 months.
+   - Contract Employees: Eligible for up to 12 weeks of leave (subject to contract terms); typically unpaid unless specified otherwise in your contract.
+
+2. **Duration**: 
+   - Standard: 26 Weeks (Max 8 weeks can be taken before the expected delivery date).
+   - Miscarriage/Medical Termination: 6 weeks of paid leave immediately following the incident.
+
+3. **Required Documents**:
+   - Medical Certificate confirming pregnancy and Expected Date of Delivery (EDD).
+   - For post-delivery extension: Birth Certificate.
+
+4. **How to Apply**:
+   - Apply at least 8 weeks in advance.
+   - Go to 'Leave Management' -> 'Apply Leave' -> Select 'Maternity Leave'.
+   - Upload the required medical documents.
+"""
+            },
+            "paternity_leave": {
+                "question": "What is the Paternity Leave policy?",
+                "answer": """Paternity Leave Policy:
+
+1. **Eligibility**:
+   - Permanent Male Employees (probationers included).
+   - Contract Employees: Eligible for 3 days of unpaid leave.
+
+2. **Duration**: 
+   - 10 Working Days.
+   - Must be availed within 1 month of the child's birth.
+
+3. **Required Documents**:
+   - Child's Birth Certificate or Hospital Discharge Summary.
+
+4. **How to Apply**:
+   - Notify manager at least 1 week in advance if possible.
+   - Go to 'Leave Management' -> 'Apply Leave' -> Select 'Paternity Leave'.
+"""
             }
         }
     
@@ -316,6 +358,12 @@ Optional Holidays: 3 days (choose from the list in portal)
             "lunch": ["meal_booking"],
             "dinner": ["meal_booking"],
             "booking": ["meal_booking"],
+            "maternity": ["maternity_leave"],
+            "paternity": ["paternity_leave"],
+            "pregnancy": ["maternity_leave"],
+            "mother": ["maternity_leave"],
+            "father": ["paternity_leave"],
+            "baby": ["maternity_leave", "paternity_leave"],
         }
         
         for keyword, kb_keys in keywords.items():
@@ -418,11 +466,45 @@ User Identity (INTERNAL ONLY - DO NOT REVEAL IN CHAT):
                 prompt += f"\nYour Leave Balance:\n{json.dumps(context['leave_balance'], indent=2)}\n"
         
         prompt += """
-RESPONSE GUIDELINES:
-1. Be confident and knowledgeable about 'Attendance Pro'.
-2. Give accurate, direct answers. Avoid "Please contact HR" unless the action strictly requires manual HR intervention (like Bank Account changes).
-3. Use the user's personal data (provided above) to give personalized answers.
-4. If you don't know the answer, say "I don't have that specific information in my records" rather than guessing.
+ROLE: Attendance Pro Assistant
+
+You are strictly an assistant for the "Attendance Pro" portal.
+You are NOT a general AI.
+
+SCOPE (ONLY answer if related to):
+- Attendance records (check-in/out, late, early exit)
+- Leave balances/history
+- Shift schedules
+- Overtime
+- Payroll data derived from attendance
+- Employee profiles stored in Attendance Pro
+- Workforce/admin reports
+- Company Data Snapshot (Admin mode)
+
+OUT-OF-SCOPE RULE:
+If a question is unrelated to Attendance Pro (programming, coding, general knowledge, jokes, personal advice, politics, etc.), respond ONLY with:
+"I am designed to assist only with Attendance Pro portal-related information."
+No explanation. No apology. No extra text.
+
+DATA RULE:
+Use only provided attendance data.
+If data is missing, say:
+"I don't have that specific information in my records."
+Do not guess.
+
+HR RULE:
+Suggest contacting HR only for actions requiring manual HR intervention (e.g., bank account change).
+
+-------------------------
+ADMIN REPORT MODE (Role = Admin)
+
+- Act as a Professional Workforce Data Analyst.
+- Use ONLY the Company Data Snapshot.
+- If greeted, immediately provide one key attendance insight.
+- If asked for "Summary", give concise executive summary:
+  attendance %, lateness trends, leave patterns, overtime, anomalies, positives.
+- Refuse unrelated questions using the standard refusal sentence.
+- Keep responses concise, professional, data-driven.
 """
         
         return prompt
@@ -459,8 +541,6 @@ RESPONSE GUIDELINES:
         period: str = "current_month"
     ) -> Dict:
         """Get attendance information for employee"""
-        # This would query the database
-        # For now, returning mock data
         return {
             "total_days": 20,
             "present": 18,
@@ -471,12 +551,228 @@ RESPONSE GUIDELINES:
     
     async def get_leave_balance(self, employee_id: str) -> Dict:
         """Get leave balance for employee"""
-        # This would query the database
         return {
             "casual": 8,
             "sick": 7,
             "annual": 15
         }
+
+    async def generate_official_letter(
+        self,
+        doc_type: str,
+        employee: Employee,
+        custom_instructions: str = "",
+        base64_image: Optional[str] = None,
+        pdf_text_content: Optional[str] = None,
+        salary_breakdown_json: Optional[str] = None,
+        company_name: str = "My Company",
+        company_logo: Optional[str] = None,
+        hr_signature: Optional[str] = None
+    ) -> str:
+        """Generate official HR letters using LLM"""
+        
+        # 1. Prepare Context
+        current_date = datetime.now().strftime("%B %d, %Y")
+        
+        # Prepare Visual Assets
+        if company_logo:
+            header_html = f"<div style='text-align: center; margin-bottom: 20px;'><img src='{company_logo}' alt='Logo' style='height: 60px; vertical-align: middle; margin-right: 15px;' /><span style='font-size: 24px; font-weight: bold; vertical-align: middle; font-family: sans-serif;'>{company_name}</span></div>"
+        else:
+            header_html = f"<div style='text-align: center; margin-bottom: 20px;'><h1 style='margin: 0;'>{company_name}</h1></div>"
+
+        if hr_signature:
+            footer_html = f"<div style='margin-top: 50px;'>Sincerely,<br><b>HR Manager</b><br><img src='{hr_signature}' alt='Signature' style='height: 50px; margin: 5px 0;' /><br><b>{company_name}</b></div>"
+        else:
+            footer_html = f"<div style='margin-top: 50px;'>Sincerely,<br><b>HR Manager</b><br><br><br><b>{company_name}</b></div>"
+        
+        prompt = f"""
+        You are an expert HR Manager at '{company_name}'.
+        Your task is to write a professional, legally-sound, and formatted Official Letter.
+        
+        DETAILS:
+        - Document Type: {doc_type.replace('_', ' ').title()}
+        - Date: {current_date}
+        - COMPANY NAME: {company_name} (See Override Rule below)
+        - Employee Name: {employee.first_name} {employee.last_name}
+        - Employee ID: {employee.employee_id}
+        - Designation: {employee.designation}
+        - Department: {employee.department}
+        - Joining Date: {employee.joining_date}
+        
+        CUSTOM INSTRUCTIONS FROM HR:
+        {custom_instructions}
+        
+        *** CRITICAL NAMING RULE ***: 
+        If the 'CUSTOM INSTRUCTIONS' above explicitly mention a different company name (e.g. 'We are TData Solutions'), 
+        you MUST use THAT name throughout the document instead of '{company_name}'.
+        
+        HTML STYLE GUIDE (CRITICAL):
+        - Use a professional font (font-family: 'Times New Roman', serif) for the body.
+        - Use `<br>` for spacing.
+        - Use `<p style='text-align: justify;'>` for body paragraphs.
+        - Wrap the entire content in a `<div style="padding: 40px; border: 1px solid #ddd; background: white;">`.
+        
+        MANDATORY HEADER & FOOTER (You MUST include these exactly as HTML):
+        1. **HEADER**: Start the document with this exact HTML block (Do not alter):
+           `{header_html}`
+           
+        2. **FOOTER**: End the document with this exact HTML block for the HR Signature:
+           `{footer_html}`
+           
+        CONTENT STRUCTURE:
+        1. **Insert HEADER Code** (as verified above).
+        
+        {
+            """
+        2. **Title**: "OFFER LETTER" (Bold, Underlined, Centered).
+        3. **Date**: Top Right.
+        4. **Salutation**: "Dear [Name],"
+        5. **Body**: 
+           - Opening: "We are pleased to invite you..."
+           - Role Confirmation: "You have been selected for [Role]..."
+           - CTC/Salary: Clear mention of numbers.
+           - Terms: Probation, Leave, etc.
+        6. **Closing**: "We look forward to..."
+            """ if doc_type == "offer_letter" else
+            
+            """
+        2. **Title**: "TO WHOM IT MAY CONCERN" or "EXPERIENCE CERTIFICATE" (Bold, Underlined, Centered).
+        3. **Date**: Top Right.
+        4. **Body**: 
+           - Opening: "This is to certify that [Name] was employed with us..."
+           - Tenure: "From [Joining Date] to [Current Date]..."
+           - Role: "He/She served as [Designation]..."
+           - Performance: "During his/her tenure, we found him/her to be..."
+           - Standing: "He/She has shown great sincerity and dedication..."
+        6. **Closing**: "We wish him/her all the best..."
+            """ if doc_type == "experience_letter" else
+
+            """
+        2. **Title**: "SALARY REVISION LETTER" (Bold, Underlined, Centered).
+        3. **Date**: Top Right.
+        4. **Salutation**: "Dear [Name],"
+        5. **Body**: 
+           - Opening: "We are pleased to inform you that your salary has been revised..."
+           - Effective Date: "This revision is effective from [Effective Date] (as mentioned in Custom Instructions)..."
+           - New CTC/Salary: Clear mention of the new numbers.
+           - Appreciation: "We appreciate your hard work and dedication..."
+        6. **Closing**: "We look forward to your continued contribution..."
+            """ if doc_type == "salary_revision" else
+
+            """
+        2. **Title**: "OFFICIAL LETTER" (Bold, Underlined, Centered).
+        3. **Date**: Top Right.
+        4. **Salutation**: "Dear [Name],"
+        5. **Body**: Use the 'CUSTOM INSTRUCTIONS' provided to determine the content and purpose of this letter.
+        6. **Closing**: Professional closing.
+            """
+        }
+        
+        7. **Insert FOOTER Code** (as verified above).
+        """
+
+        if salary_breakdown_json:
+            try:
+                salary_data = json.loads(salary_breakdown_json)
+                if isinstance(salary_data, list) and len(salary_data) > 0:
+                    table_html = "<table style='width:100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #000;'>"
+                    table_html += "<tr style='background:#f0f0f0;'><th style='border:1px solid #000; padding:8px;'>Category</th><th style='border:1px solid #000; padding:8px; text-align:right;'>Amount (INR)</th></tr>"
+                    total = 0
+                    for row in salary_data:
+                         amount = row.get('amount', '0')
+                         try:
+                             # Try to clean amount string for total calc
+                             clean_amt = float(str(amount).replace(',','').replace(' ',''))
+                             total += clean_amt
+                         except:
+                             pass
+                         table_html += f"<tr><td style='border:1px solid #000; padding:8px;'>{row.get('category')}</td><td style='border:1px solid #000; padding:8px; text-align:right;'>{amount}</td></tr>"
+                    
+                    # Total Row
+                    table_html += f"<tr style='font-weight:bold;'><td style='border:1px solid #000; padding:8px;'>TOTAL</td><td style='border:1px solid #000; padding:8px; text-align:right;'>{total:,.2f}</td></tr>"
+                    table_html += "</table>"
+                    
+                    prompt += f"""
+                    
+                    MANDATORY SALARY BREAKDOWN TABLE:
+                    Please INSERT the following HTML Table explicitly into the document where the Salary/Compensation is mentioned. 
+                    
+                    DISPLAY RULE (CRITICAL):
+                    - INSERT the table below.
+                    - Do NOT list the salary components (Basic, HRA, etc.) or amounts in the paragraph text.
+                    - Instead, simply write: "The detailed salary structure is annexed below:" and then show the table.
+                    
+                    {table_html}
+                    """
+            except Exception as e:
+                print(f"Error parsing salary json: {e}")
+
+        if pdf_text_content:
+            prompt += f"""
+            
+            --------------------------------------------------
+            REFERENCE TEMPLATE (FROM UPLOADED PDF):
+            {pdf_text_content[:4000]} # Limit characters context
+            --------------------------------------------------
+            
+            CRITICAL INSTRUCTIONS FOR TEMPLATE USAGE:
+            1. **Analyze the Structure**: The text above is a raw extraction from a PDF directly. It may contain sample names (e.g., "Rahul", "Employee Name") and sample amounts.
+            2. **IDENTIFY & REPLACE**: You must identify the 'Sample Data' in the template and REPLACE it with the actual Employee Details provided at the top of this prompt.
+               - IF the template reads "Dear Rahul", CHANGE it to "Dear {employee.first_name} {employee.last_name}".
+               - IF the template reads "Salary: 10 LPA", CHANGE it to the salary mentioned in 'CUSTOM INSTRUCTIONS'.
+               - IF the template has an old date, CHANGE it to "{current_date}".
+               - IF the template mentions "Saigo Systems" or any other company name, CHANGE it to the Target Company Name found in 'DETAILS' (or Overridden by instructions).
+            3. **RESTORE FORMATTING**: Raw PDF text loses alignment. You MUST restore it using HTML:
+               - **USE THE MANDATORY HEADER defined above** instead of the PDF's text header.
+               - Right align dates.
+               - Justify paragraphs.
+               - Use <b>Table</b> tags if the template implies a table structure (e.g. for Salary Breakdown).
+               - **USE THE MANDATORY FOOTER defined above** for the signature block.
+            4. **IGNORE JUNK**: Ignore page numbers or header/footer artifacts like "Page 1 of 2".
+            """
+
+        if base64_image:
+             prompt += "\n\nIMPORTANT: I have attached an image of a template/sample letter. PLEASE FOLLOW THE STRUCTURE, TONE, AND FORMATTING of this image exactly, but strictly replace the placeholder details with the Employee Details provided above."
+
+        messages = [
+            {"role": "system", "content": "You are a professional HR Document Generator. Return ONLY valid HTML code. Do NOT wrap in markdown code blocks."}
+        ]
+
+        if base64_image:
+            # Vision API format
+            messages.append({
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            })
+        else:
+            # Text-only format
+            messages.append({"role": "user", "content": prompt})
+
+        # Call LLM
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=2500
+            )
+            content = response.choices[0].message.content
+            
+            # Post-processing to remove markdown
+            content = content.replace("```html", "").replace("```", "").strip()
+            return content
+            
+        except Exception as e:
+            print(f"Error generating document: {e}")
+            return f"<p style='color:red;'>Error generating document: {str(e)}</p>"
 
 
 # Global chatbot instance
