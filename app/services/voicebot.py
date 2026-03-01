@@ -53,28 +53,33 @@ class VoicebotService:
         return text
 
     async def synthesize_speech_base64(self, text: str) -> Optional[Tuple[str, str]]:
-        for fmt in ["wav", "mp3"]:
-            try:
-                speech = await self.groq_client.audio.speech.create(
-                    model=settings.GROQ_TTS_MODEL,
-                    voice=settings.GROQ_TTS_VOICE,
-                    input=text,
-                    response_format=fmt,
-                )
+        """
+        Convert text to speech using Groq's Orpheus TTS model
+        Returns base64-encoded audio and format, or None if TTS fails
+        """
+        try:
+            speech_response = await self.groq_client.audio.speech.create(
+                model=settings.GROQ_TTS_MODEL,
+                voice=settings.GROQ_TTS_VOICE,
+                input=text,
+                response_format="wav",
+            )
 
-                if hasattr(speech, "read"):
-                    maybe_bytes = speech.read()
-                    audio_bytes = await maybe_bytes if hasattr(maybe_bytes, "__await__") else maybe_bytes
-                elif hasattr(speech, "content"):
-                    audio_bytes = speech.content
-                else:
-                    audio_bytes = bytes(speech)
+            # Read the audio content from response
+            if hasattr(speech_response, 'content'):
+                audio_bytes = speech_response.content
+            elif hasattr(speech_response, 'read'):
+                audio_bytes = await speech_response.read() if hasattr(speech_response.read(), '__await__') else speech_response.read()
+            else:
+                audio_bytes = bytes(speech_response)
 
-                if audio_bytes:
-                    return base64.b64encode(audio_bytes).decode("utf-8"), fmt
-            except Exception:
-                continue
-        return None
+            if audio_bytes:
+                return base64.b64encode(audio_bytes).decode("utf-8"), "wav"
+            return None
+        except Exception as e:
+            print(f"Groq TTS Error: {str(e)}")
+            # Fallback to browser SpeechSynthesis API
+            return None
 
     def _build_messages(self, history: List[VoiceMessage], user_text: str):
         system = SystemMessage(
