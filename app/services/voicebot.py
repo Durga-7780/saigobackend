@@ -30,8 +30,10 @@ def _get_xtts_model():
     if _xtts_model is None:
         try:
             from TTS.api import TTS
-            device = "cuda" if settings.XTTS_GPU_ENABLED else "cpu"
-            _xtts_model = TTS(model_name=settings.XTTS_MODEL, gpu=settings.XTTS_GPU_ENABLED, progress_bar=False)
+            xtts_gpu_enabled = bool(getattr(settings, "XTTS_GPU_ENABLED", False))
+            xtts_model_name = getattr(settings, "XTTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_v2")
+            device = "cuda" if xtts_gpu_enabled else "cpu"
+            _xtts_model = TTS(model_name=xtts_model_name, gpu=xtts_gpu_enabled, progress_bar=False)
             print(f"✅ XTTS model loaded on {device}")
         except Exception as e:
             print(f"❌ Failed to load XTTS model: {str(e)}")
@@ -91,11 +93,13 @@ class VoicebotService:
 
             def generate_audio():
                 try:
+                    xtts_language = getattr(settings, "XTTS_LANGUAGE", "en")
+                    xtts_gpu_enabled = bool(getattr(settings, "XTTS_GPU_ENABLED", False))
                     tts_model.tts_to_file(
                         text=text,
                         file_path=tmp_path,
-                        language=settings.XTTS_LANGUAGE,
-                        gpu=settings.XTTS_GPU_ENABLED,
+                        language=xtts_language,
+                        gpu=xtts_gpu_enabled,
                     )
                     with open(tmp_path, 'rb') as f:
                         audio_bytes = f.read()
@@ -118,17 +122,22 @@ class VoicebotService:
     async def _synthesize_groq(self, text: str) -> Optional[bytes]:
         """Synthesize speech using Groq TTS (fallback)"""
         try:
+            groq_tts_model = getattr(settings, "GROQ_TTS_MODEL", "playai-tts")
+            groq_tts_voice = getattr(settings, "GROQ_TTS_VOICE", "hannah")
             speech_response = await self.groq_client.audio.speech.create(
-                model=settings.GROQ_TTS_MODEL,
-                voice=settings.GROQ_TTS_VOICE,
+                model=groq_tts_model,
+                voice=groq_tts_voice,
                 input=text,
                 response_format="wav",
             )
 
             if hasattr(speech_response, 'content'):
                 return speech_response.content
-            elif hasattr(speech_response, 'read'):
-                return await speech_response.read() if hasattr(speech_response.read(), '__await__') else speech_response.read()
+            elif hasattr(speech_response, "read"):
+                content = speech_response.read()
+                if hasattr(content, "__await__"):
+                    return await content
+                return content
             else:
                 return bytes(speech_response)
 
@@ -144,8 +153,11 @@ class VoicebotService:
         audio_bytes = None
 
         # Try XTTS first if enabled
-        if settings.TTS_ENGINE == "xtts":
-            print(f"🎵 Using XTTS TTS (Language: {settings.XTTS_LANGUAGE})")
+        tts_engine = str(getattr(settings, "TTS_ENGINE", "groq")).lower()
+        xtts_language = getattr(settings, "XTTS_LANGUAGE", "en")
+
+        if tts_engine == "xtts":
+            print(f"🎵 Using XTTS TTS (Language: {xtts_language})")
             audio_bytes = await self._synthesize_xtts(text)
 
         # Fallback to Groq if XTTS fails or not enabled
@@ -225,6 +237,7 @@ class VoicebotService:
             "assistant_text": assistant_text,
             "assistant_audio_base64": audio_base64,
             "assistant_audio_format": audio_format,
+            "tts_available": bool(audio_base64),
             "messages": [
                 {
                     "role": m.role,
@@ -258,6 +271,7 @@ class VoicebotService:
             "assistant_text": greeting_text,
             "assistant_audio_base64": audio_base64,
             "assistant_audio_format": audio_format,
+            "tts_available": bool(audio_base64),
             "messages": [
                 {
                     "role": m.role,
