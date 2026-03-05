@@ -46,6 +46,9 @@ pypdf==3.16.2
 langchain==0.3.27
 langchain-core==0.3.79
 langchain-groq==0.3.8
-TTS==0.22.0
+TTS>=0.14.0,<1.0.0
 scipy==1.14.0
 librosa==0.10.2
+torch>=2.0.0
+torchaudio>=2.0.0
+
