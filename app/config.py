@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     PORT: int = 8000
     
     # MongoDB
-    MONGODB_URL: str = ""
+    MONGODB_URL: str = "mongodb://localhost:27017"
     MONGODB_DB_NAME: str = "attendance_system"
     
     # JWT
-    SECRET_KEY: str = ""
+    SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -40,8 +40,17 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
     GROQ_STT_MODEL: str = "whisper-large-v3-turbo"
-    GROQ_TTS_MODEL: str = "canopylabs/orpheus-v1-english"
+    GROQ_TTS_MODEL: str = "playai-tts"
     GROQ_TTS_VOICE: str = "hannah"
+
+    # TTS engine selection
+    # Options: "groq" (recommended on Render), "xtts" (requires extra dependencies)
+    TTS_ENGINE: str = "groq"
+
+    # XTTS options (used only when TTS_ENGINE = "xtts")
+    XTTS_MODEL: str = "tts_models/multilingual/multi-dataset/xtts_v2"
+    XTTS_LANGUAGE: str = "en"
+    XTTS_GPU_ENABLED: bool = False
     
     # Local LLM
     USE_LOCAL_LLM: bool = False
@@ -52,10 +61,10 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = ""
+    EMAIL_FROM: str = "noreply@attendance.com"
     
     # CORS
-    CORS_ORIGINS: str = "https://saigo.onrender.com"
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # File Upload
