@@ -105,11 +105,11 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
-
+#allow_origins=["*"]
 # # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://saigo.onrender.com"],
     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
