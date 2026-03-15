@@ -9,6 +9,7 @@ from typing import Optional, Dict, List
 from app.models.employee import Employee
 from app.api.routes.auth import get_current_employee
 from app.ai.chatbot import chatbot_service
+from app.config import settings
 from app.services.voicebot import voicebot_service
 
 
@@ -91,6 +92,18 @@ async def get_suggestions():
     }
 
 
+@router.get("/voice/config")
+async def get_voice_config(
+    _current_employee: Employee = Depends(get_current_employee)
+):
+    return {
+        "maxRecordingSeconds": settings.VOICEBOT_MAX_RECORDING_SECONDS,
+        "vadSpeechThreshold": settings.VOICEBOT_VAD_SPEECH_THRESHOLD,
+        "vadSilenceMs": settings.VOICEBOT_VAD_SILENCE_MS,
+        "vadMinSpeechMs": settings.VOICEBOT_VAD_MIN_SPEECH_MS,
+    }
+
+
 @router.post("/voice/sessions")
 async def create_voice_session(
     current_employee: Employee = Depends(get_current_employee)
@@ -150,6 +163,8 @@ async def get_voice_session(
 @router.post("/voice/turn")
 async def voice_turn(
     session_id: str = Form(...),
+    input_language: Optional[str] = Form(None),
+    response_language: Optional[str] = Form(None),
     audio: UploadFile = File(...),
     current_employee: Employee = Depends(get_current_employee),
 ):
@@ -163,6 +178,8 @@ async def voice_turn(
             session_id=session_id,
             audio_filename=audio.filename or "voice.webm",
             audio_bytes=audio_bytes,
+            input_language=input_language,
+            response_language=response_language,
         )
         return result
     except ValueError as e:
