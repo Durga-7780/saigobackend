@@ -170,7 +170,12 @@ class VoicebotService:
 
         return None
 
-    def _build_messages(self, history: List[VoiceMessage], user_text: str):
+    def _build_messages(
+        self,
+        history: List[VoiceMessage],
+        user_text: str,
+        response_language: Optional[str] = None,
+    ):
         system = SystemMessage(
             content=(
                 "You are Saigo Voice Assistant for Attendance Pro portal. "
@@ -183,6 +188,12 @@ class VoicebotService:
             )
         )
         messages = [system]
+        if response_language:
+            messages.append(
+                SystemMessage(
+                    content=f"Respond in {response_language}. Keep the response concise and natural for speech."
+                )
+            )
         for item in history[-12:]:
             if item.role == "user":
                 messages.append(HumanMessage(content=item.text))
@@ -191,9 +202,14 @@ class VoicebotService:
         messages.append(HumanMessage(content=user_text))
         return messages
 
-    async def generate_reply(self, history: List[VoiceMessage], user_text: str) -> str:
+    async def generate_reply(
+        self,
+        history: List[VoiceMessage],
+        user_text: str,
+        response_language: Optional[str] = None,
+    ) -> str:
         """Generate AI response using ChatGroq LLM"""
-        messages = self._build_messages(history, user_text)
+        messages = self._build_messages(history, user_text, response_language=response_language)
         response = await self.llm.ainvoke(messages)
         return (response.content or "").strip()
 
@@ -203,6 +219,8 @@ class VoicebotService:
         session_id: str,
         audio_filename: str,
         audio_bytes: bytes,
+        input_language: Optional[str] = None,
+        response_language: Optional[str] = None,
     ) -> Dict:
         """Process a complete voice conversation turn"""
         session = await self.get_session(employee_id=employee_id, session_id=session_id)
@@ -215,7 +233,11 @@ class VoicebotService:
             raise ValueError("Could not transcribe audio")
 
         # Step 2: Generate AI response
-        assistant_text = await self.generate_reply(session.messages, user_text)
+        assistant_text = await self.generate_reply(
+            session.messages,
+            user_text,
+            response_language=response_language,
+        )
         if not assistant_text:
             assistant_text = "I could not generate a response. Please try again."
 
