@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "noreply@attendance.com"
     
     # CORS
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,https://saigo.onrender.com"
+    CORS_ORIGINS: str = "https://saigo.onrender.com"
     CORS_ALLOW_CREDENTIALS: bool = True
     
     # File Upload
