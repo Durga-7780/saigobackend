@@ -621,7 +621,7 @@ ADMIN REPORT MODE (Role = Admin)
            
         CONTENT STRUCTURE:
         1. **Insert HEADER Code** (as verified above).
-        
+        {
             """
         2. **Title**: "OFFER LETTER" (Bold, Underlined, Centered).
         3. **Date**: Top Right.
