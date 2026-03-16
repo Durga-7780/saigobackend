@@ -107,10 +107,21 @@ app = FastAPI(
 )
 #allow_origins=["*"]
 # # Configure CORS
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["https://saigo.onrender.com"],
+#     allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://saigo.onrender.com"],
-    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_origins=[
+        "https://saigo.onrender.com",
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
