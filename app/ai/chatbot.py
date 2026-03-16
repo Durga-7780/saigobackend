@@ -619,55 +619,74 @@ ADMIN REPORT MODE (Role = Admin)
         2. **FOOTER**: End the document with this exact HTML block for the HR Signature:
            `{footer_html}`
            
-        CONTENT STRUCTURE:
-        1. **Insert HEADER Code** (as verified above).
-        {
-            """
-        2. **Title**: "OFFER LETTER" (Bold, Underlined, Centered).
-        3. **Date**: Top Right.
-        4. **Salutation**: "Dear [Name],"
-        5. **Body**: 
-           - Opening: "We are pleased to invite you..."
-           - Role Confirmation: "You have been selected for [Role]..."
-           - CTC/Salary: Clear mention of numbers.
-           - Terms: Probation, Leave, etc.
-        6. **Closing**: "We look forward to..."
-            """ if doc_type == "offer_letter" else
-            
-            """
-        2. **Title**: "TO WHOM IT MAY CONCERN" or "EXPERIENCE CERTIFICATE" (Bold, Underlined, Centered).
-        3. **Date**: Top Right.
-        4. **Body**: 
-           - Opening: "This is to certify that [Name] was employed with us..."
-           - Tenure: "From [Joining Date] to [Current Date]..."
-           - Role: "He/She served as [Designation]..."
-           - Performance: "During his/her tenure, we found him/her to be..."
-           - Standing: "He/She has shown great sincerity and dedication..."
-        6. **Closing**: "We wish him/her all the best..."
-            """ if doc_type == "experience_letter" else
-
-            """
-        2. **Title**: "SALARY REVISION LETTER" (Bold, Underlined, Centered).
-        3. **Date**: Top Right.
-        4. **Salutation**: "Dear [Name],"
-        5. **Body**: 
-           - Opening: "We are pleased to inform you that your salary has been revised..."
-           - Effective Date: "This revision is effective from [Effective Date] (as mentioned in Custom Instructions)..."
-           - New CTC/Salary: Clear mention of the new numbers.
-           - Appreciation: "We appreciate your hard work and dedication..."
-        6. **Closing**: "We look forward to your continued contribution..."
-            """ if doc_type == "salary_revision" else
-
-            """
-        2. **Title**: "OFFICIAL LETTER" (Bold, Underlined, Centered).
-        3. **Date**: Top Right.
-        4. **Salutation**: "Dear [Name],"
-        5. **Body**: Use the 'CUSTOM INSTRUCTIONS' provided to determine the content and purpose of this letter.
-        6. **Closing**: Professional closing.
-            """
-        }
+        if doc_type == "offer_letter":
+            doc_structure = """
+        2. **Title**: OFFER LETTER
+        3. **Date**: Top Right
+        4. **Salutation**: Dear [Name]
+        5. **Body**:
+           - Opening: We are pleased to invite you...
+           - Role Confirmation
+           - Salary / CTC details
+           - Terms and conditions
+        6. **Closing**
+        """
+        elif doc_type == "experience_letter":
+            doc_structure = """
+        2. **Title**: EXPERIENCE CERTIFICATE
+        3. **Date**: Top Right
+        4. **Body**:
+           - Employment confirmation
+           - Tenure
+           - Role description
+           - Performance statement
+        6. **Closing**
+        """
+        elif doc_type == "salary_revision":
+            doc_structure = """
+        2. **Title**: SALARY REVISION LETTER
+        3. **Date**: Top Right
+        4. **Salutation**
+        5. **Body**:
+           - Salary revision announcement
+           - Effective date
+           - Appreciation note
+        6. **Closing**
+        """
+        else:
+            doc_structure = """
+        2. **Title**: OFFICIAL LETTER
+        3. **Date**: Top Right
+        4. **Salutation**
+        5. **Body** based on HR instructions
+        6. **Closing**
+        """
         
-        7. **Insert FOOTER Code** (as verified above).
+        prompt = f"""
+        You are an expert HR Manager at '{company_name}'.
+        
+        DETAILS:
+        - Document Type: {doc_type.replace('_', ' ').title()}
+        - Date: {current_date}
+        - Employee Name: {employee.first_name} {employee.last_name}
+        - Employee ID: {employee.employee_id}
+        - Designation: {employee.designation}
+        - Department: {employee.department}
+        - Joining Date: {employee.joining_date}
+        
+        CUSTOM INSTRUCTIONS:
+        {custom_instructions}
+        
+        HEADER:
+        {header_html}
+        
+        CONTENT STRUCTURE:
+        1. Insert Header
+        
+        {doc_structure}
+        
+        FOOTER:
+        {footer_html}
         """
 
         if salary_breakdown_json:
